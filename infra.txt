@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Template to launch Wiki Environment 
+Parameters:
+  KeyName:
+    Description: Amazon EC2 Key Pair
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: turbot
+  InstanceType:
+    Description: Instance1 EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m1.small
+      - m1.medium
+      - m1.large
+      - m1.xlarge
+      - m2.xlarge
+      - m2.2xlarge
+      - m2.4xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - c1.medium
+      - c1.xlarge
+      - c3.large
+      - c3.xlarge
+      - c3.2xlarge
+      - c3.4xlarge
+      - c3.8xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+  AWSRegion:
+    Description: AWS Region name
+    Type: String
+    Default: us-east-1a
+    AllowedValues:
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
+  VPCId:
+    Type: 'List<AWS::EC2::VPC::Id>'
+    Description: Existing VPC's available
+  PrivateSubnet1:
+    Description: Private Subnet for launching EC2 instance
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet2:
+    Description: Private Subnet for launching EC2 instance
+    Type: AWS::EC2::Subnet::Id
+  #SubnetIds:
+    #Description: Enter the Subnets
+    #Type: 'List<AWS::EC2::Subnet::Id>'
+  ImageId:
+    Description: AWS Image ID
+    Type: String
+    Default: ami-0cdc53dedfbaefae8
+  DefaultSecurityGroup:
+    Description: AWS Default Security Group
+    Type: AWS::EC2::SecurityGroup::Id
+  AppSecurityGroup:
+    Description: Application Security Group
+    Type: AWS::EC2::SecurityGroup::Id
+  EC2InstanceName1:
+    Description: EC2 Instance Name
+    Type: String
+    Default: wiki-dev1
+  Engine:
+    Description: Selecting RDS Engine
+    Type: String
+    Default: MySQL
+  DBInstanceClass:
+    Description: The RDS DB Instance Type
+    Type: String
+    Default: db.t2.micro
+    AllowedValues:
+      - db.t2.micro
+      - db.m4.xlarge
+      - db.t2.small
+      - db.m3.large
+      - db.r3.large
+      - db.t2.medium
+  StorageType:
+    Description: Storage Type Info
+    Type: String
+    Default: gp2
+  AllocatedStorage:
+    Description: Allocated Storage Info
+    Type: String
+    Default: '200'
+    AllowedValues:
+      - 500
+      - 200
+      - 100
+      - 20
+  DBInstanceIdentifier:
+    Description: Database Identifier
+    Type: String
+    Default: rds-mysql-inst01
+  MasterUsername:
+    Description: Database UserName
+    Type: String
+    Default: awsadb
+  MasterUserPassword:
+    Description: Database Password
+    Type: String
+    Default: Aws12345
+  DBSubnetGroupName:
+    Description: Subnet Group Info
+    Type: String
+    Default: abuusea1-internaldbsubnetgroup-1vk1dgmn4s66o
+  AvailabilityZone:
+    Description: Data Base Availability Zone
+    Type: String
+    Default: us-east-1a
+  DBName:
+    Description: Data Base Name
+    Type: String
+    Default: mytest1
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Existing VPC's available in RDS
+  SubnetIds:
+    Description: Enter the Subnets
+    Type: 'List<AWS::EC2::Subnet::Id>'
+	
+	
+ 
+Resources:
+  Ec2Instance1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: !Ref EC2InstanceName1
+      SecurityGroupIds:
+        - !Ref DefaultSecurityGroup
+        - !Ref AppSecurityGroup
+      SubnetId: !Ref PrivateSubnet1
+      UserData: !Base64 
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -ex
+            - |
+              sudo yum update -y
+            - |
+              sudo yum install -y python-2.7 python-devel postgresql postgresql-libs libopenssl1 libtirpc-devel openssl psmisc redhat-lsb wget unzip
+			  
+  SQLDataBase:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      Engine: !Ref Engine
+      DBInstanceClass: !Ref DBInstanceClass
+      MultiAZ: false
+      StorageType: !Ref StorageType
+      AllocatedStorage: !Ref AllocatedStorage
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      AvailabilityZone: !Ref AvailabilityZone
+      DBName: !Ref DBName
+    
